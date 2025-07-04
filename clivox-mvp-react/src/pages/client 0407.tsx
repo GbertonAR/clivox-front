@@ -1,17 +1,8 @@
+// src/pages/Client.tsx
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/use-toast'
-import {
-  Video,
-  VideoOff,
-  Mic,
-  MicOff,
-  User,
-  Wifi,
-  PlugZap,
-  
-} from 'lucide-react'
-import { CheckCircle } from 'lucide-react'
+import { Video, VideoOff, Mic, MicOff, User, Wifi } from 'lucide-react'
 
 const Client = () => {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -24,7 +15,6 @@ const Client = () => {
   const [camaraActiva, setCamaraActiva] = useState(true)
   const [microfonoActivo, setMicrofonoActivo] = useState(true)
   const [conectado, setConectado] = useState(false)
-  const [conectando, setConectando] = useState(false)
 
   const conectar = async () => {
     if (!salaId || !userId) {
@@ -36,7 +26,6 @@ const Client = () => {
       return
     }
 
-    setConectando(true)
     const ws = new WebSocket(`ws://localhost:8000/ws/cliente/${salaId}/${userId}`)
     wsRef.current = ws
 
@@ -50,14 +39,12 @@ const Client = () => {
         title: 'Error de acceso',
         description: 'No se pudo acceder a cámara o micrófono.',
       })
-      setConectando(false)
       return
     }
 
     ws.onopen = () => {
       setConectado(true)
-      setConectando(false)
-      toast({ title: '🔌 Conectado', description: 'Te uniste a la sala exitosamente.' })
+      toast({ title: 'Conectado', description: 'Sala activa' })
     }
 
     ws.onclose = () => setConectado(false)
@@ -110,16 +97,15 @@ const Client = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#6a11cb] to-[#2575fc] p-6 flex items-center justify-center">
-
-      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-2xl space-y-6 border border-blue-100">
+    <div className="min-h-screen bg-gradient-to-br from-white to-slate-100 p-6 flex items-center justify-center">
+      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-2xl space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-2">
             <User size={28} /> Modo Participante
           </h1>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <Wifi size={20} className={`transition ${conectado ? 'text-green-500' : 'text-gray-400'}`} />
-            <span className={`text-sm font-medium ${conectado ? 'text-green-600' : 'text-gray-500'}`}>
+            <span className={`text-sm ${conectado ? 'text-green-500' : 'text-gray-500'}`}>
               {conectado ? 'Conectado' : 'Desconectado'}
             </span>
           </div>
@@ -143,33 +129,12 @@ const Client = () => {
         </div>
 
         <div className="flex flex-wrap justify-center gap-3">
-          <Button
-            onClick={conectar}
-            disabled={!salaId || !userId || conectando || conectado}
-            className={`gap-2 transition-all duration-300 ${
-              conectado ? 'bg-green-600 hover:bg-green-700' : ''
-            }`}
-          >
-            {conectado ? <PlugConnected size={18} /> : <PlugZap size={18} className="animate-pulse" />}
-            {conectado ? '🔌 Conectado' : conectando ? 'Conectando...' : '✅ Conectar'}
-          </Button>
-
-          <Button
-            variant="secondary"
-            onClick={toggleCamara}
-            disabled={!conectado}
-            className="gap-2 transition hover:scale-105"
-          >
+          <Button onClick={conectar} className="gap-2">✅ Conectar</Button>
+          <Button variant="secondary" onClick={toggleCamara} className="gap-2">
             {camaraActiva ? <VideoOff size={18} /> : <Video size={18} />}
             {camaraActiva ? 'Apagar Cámara' : 'Prender Cámara'}
           </Button>
-
-          <Button
-            variant="secondary"
-            onClick={toggleMicrofono}
-            disabled={!conectado}
-            className="gap-2 transition hover:scale-105"
-          >
+          <Button variant="secondary" onClick={toggleMicrofono} className="gap-2">
             {microfonoActivo ? <MicOff size={18} /> : <Mic size={18} />}
             {microfonoActivo ? 'Apagar Micrófono' : 'Prender Micrófono'}
           </Button>

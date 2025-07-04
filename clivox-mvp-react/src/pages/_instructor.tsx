@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/use-toast'
-import { Video, VideoOff, Mic, MicOff, VideoIcon } from 'lucide-react'
 
 const Instructor = () => {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -71,9 +70,11 @@ const Instructor = () => {
   }
 
   const finalizarSesion = (redirigir = true) => {
+    // Apagar cámara y micrófono
     localStream.current?.getTracks().forEach((track) => track.stop())
     localStream.current = null
 
+    // Cerrar conexiones
     Object.values(peers.current).forEach((pc) => pc.close())
     peers.current = {}
 
@@ -84,11 +85,13 @@ const Instructor = () => {
 
     if (videoRef.current) videoRef.current.srcObject = null
 
+    // Notificación
     toast({
       title: "Sesión finalizada",
       description: "Se cerró la conexión correctamente.",
     })
 
+    // Redirección
     if (redirigir) {
       setTimeout(() => navigate('/dashboard'), 1500)
     }
@@ -111,51 +114,37 @@ const Instructor = () => {
   }
 
   return (
-    // <div className="min-h-screen bg-gradient-to-b from-white to-slate-100 p-6 flex items-center justify-center">
-    <div className="min-h-screen bg-gradient-to-br from-[#6a11cb] to-[#2575fc] p-6 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-2xl space-y-6">
-        <h1 className="text-4xl font-bold text-center text-slate-800 flex items-center justify-center gap-2">
-          🎓 <span>Modo Instructor</span>
-        </h1>
+    <div className="p-8 max-w-xl mx-auto space-y-4 animate-in fade-in duration-500">
+      <h1 className="text-3xl font-bold text-center mb-4">🎓 Modo Instructor</h1>
 
-        <input
-          type="text"
-          placeholder="🎯 ID de la sala"
-          value={salaId}
-          onChange={(e) => setSalaId(e.target.value)}
-          className="w-full px-4 py-3 border border-slate-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-        />
+      <input
+        type="text"
+        placeholder="ID de la sala"
+        value={salaId}
+        onChange={(e) => setSalaId(e.target.value)}
+        className="w-full px-4 py-2 border rounded shadow"
+      />
 
-        <div className="flex flex-wrap justify-center gap-3">
-          <Button onClick={iniciarConexion} className="gap-2">
-            🔴 Iniciar sesión en sala
-          </Button>
-
-          <Button variant="secondary" onClick={toggleCamara} className="gap-2">
-            {camaraActiva ? <VideoOff size={18} /> : <Video size={18} />}
-            {camaraActiva ? 'Apagar Cámara' : 'Prender Cámara'}
-          </Button>
-
-          <Button variant="secondary" onClick={toggleMicrofono} className="gap-2">
-            {microfonoActivo ? <MicOff size={18} /> : <Mic size={18} />}
-            {microfonoActivo ? 'Apagar Micrófono' : 'Prender Micrófono'}
-          </Button>
-        </div>
-
-        <div className="flex justify-center">
-          <Button variant="destructive" onClick={() => finalizarSesion(true)} className="px-6">
-            ⛔ Finalizar sesión
-          </Button>
-        </div>
-
-        <video
-          ref={videoRef}
-          autoPlay
-          muted
-          playsInline
-          className="w-full rounded-lg border border-slate-200 shadow-md"
-        />
+      <div className="flex justify-center gap-4 flex-wrap">
+        <Button onClick={iniciarConexion}>🔴 Iniciar sesión en sala</Button>
+        <Button variant="secondary" onClick={toggleCamara}>
+          {camaraActiva ? 'Apagar Cámara' : 'Prender Cámara'}
+        </Button>
+        <Button variant="secondary" onClick={toggleMicrofono}>
+          {microfonoActivo ? 'Apagar Micrófono' : 'Prender Micrófono'}
+        </Button>
+        <Button variant="destructive" onClick={() => finalizarSesion(true)}>
+          ⛔ Finalizar sesión
+        </Button>
       </div>
+
+      <video
+        ref={videoRef}
+        autoPlay
+        muted
+        playsInline
+        className="mt-4 w-full rounded shadow-lg border"
+      />
     </div>
   )
 }
