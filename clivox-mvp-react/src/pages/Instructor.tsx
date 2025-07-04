@@ -33,25 +33,30 @@ const Instructor = () => {
     return () => finalizarSesion(false)
   }, [])
 
-  const iniciarConexion = () => {
-    if (!salaId) return
-    const socket = new WebSocket(`ws://localhost:8000/ws/instructor/${salaId}`)
-    setWs(socket)
+const iniciarConexion = () => {
+  if (!salaId) return
+  const backendUrl = import.meta.env.VITE_API_WS_URL || "ws://localhost:8000"
+  // const socket = new WebSocket(`${backendUrl}/ws/instructor/${salaId}`)
+  const instructorId = "instructor1" // podés obtenerlo dinámicamente si querés
+  const ws = new WebSocket(`${backendUrl}/ws/instructor/${salaId}/${instructorId}`)
 
-    socket.onmessage = async (event) => {
-      const [type, clientId, payload] = event.data.split('::')
 
-      if (type === 'NEW_CLIENT') {
-        await crearConexion(clientId, socket)
-      } else if (type === 'ANSWER') {
-        const desc = new RTCSessionDescription(JSON.parse(payload))
-        await peers.current[clientId]?.setRemoteDescription(desc)
-      } else if (type === 'ICE') {
-        const candidate = new RTCIceCandidate(JSON.parse(payload))
-        await peers.current[clientId]?.addIceCandidate(candidate)
-      }
+  setWs(socket)
+
+  socket.onmessage = async (event) => {
+    const [type, clientId, payload] = event.data.split('::')
+
+    if (type === 'NEW_CLIENT') {
+      await crearConexion(clientId, socket)
+    } else if (type === 'ANSWER') {
+      const desc = new RTCSessionDescription(JSON.parse(payload))
+      await peers.current[clientId]?.setRemoteDescription(desc)
+    } else if (type === 'ICE') {
+      const candidate = new RTCIceCandidate(JSON.parse(payload))
+      await peers.current[clientId]?.addIceCandidate(candidate)
     }
   }
+}
 
   const crearConexion = async (clientId: string, socket: WebSocket) => {
     const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] })
