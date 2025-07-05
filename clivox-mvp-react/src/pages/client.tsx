@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/use-toast'
 import {
@@ -10,7 +10,7 @@ import {
   Wifi,
   PlugZap,
   PlugConnected,
-  XCircle
+  XCircle,
 } from 'lucide-react'
 
 const Client = () => {
@@ -32,7 +32,7 @@ const Client = () => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(mensaje)
     } else {
-      console.warn("⚠️ WebSocket no está listo para enviar mensajes.")
+      console.warn("⚠️ WebSocket no está listo.")
     }
   }
 
@@ -46,25 +46,26 @@ const Client = () => {
       return
     }
 
-    // Previene múltiples conexiones
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
       toast({ title: 'Ya estás conectado a una sala.' })
       return
     }
 
     setConectando(true)
 
-    const ws = new WebSocket(`wss://clivox-backend-cea4bzfcahbpf9fw.westus-01.azurewebsites.net/${salaId}/${userId}`)
+    const ws = new WebSocket(
+      `wss://clivox-backend-cea4bzfcahbpf9fw.westus-01.azurewebsites.net/ws/cliente/${salaId}/${userId}`
+    )
     wsRef.current = ws
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       localStreamRef.current = stream
       if (videoRef.current) videoRef.current.srcObject = stream
-    } catch (e) {
+    } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Error de acceso',
+        title: 'Acceso denegado',
         description: 'No se pudo acceder a cámara o micrófono.',
       })
       setConectando(false)
@@ -74,7 +75,7 @@ const Client = () => {
     ws.onopen = () => {
       setConectado(true)
       setConectando(false)
-      toast({ title: '🔌 Conectado', description: 'Te uniste a la sala exitosamente.' })
+      toast({ title: '✅ Conectado', description: `Te uniste a la sala ${salaId}` })
     }
 
     ws.onclose = () => {
@@ -84,45 +85,48 @@ const Client = () => {
 
     ws.onerror = () => {
       setConectado(false)
-      wsRef.current = null
+      toast({
+        variant: 'destructive',
+        title: 'Error de conexión',
+        description: 'No se pudo conectar al servidor.',
+      })
     }
 
     ws.onmessage = async (event) => {
-      const partes = event.data.split('::')
-      if (partes.length < 3) {
-        console.warn("⚠️ Mensaje WebSocket malformado:", event.data)
-        return
-      }
+      try {
+        const [tipo, origenId, payload] = event.data.split('::')
+        if (!tipo || !origenId || !payload) return
 
-      const [tipo, origenId, payload] = partes
+        if (tipo === 'OFFER') {
+          const pc = new RTCPeerConnection(iceServers)
+          pcRef.current = pc
 
-      if (tipo === 'OFFER') {
-        const pc = new RTCPeerConnection(iceServers)
-        pcRef.current = pc
+          localStreamRef.current?.getTracks().forEach((track) =>
+            pc.addTrack(track, localStreamRef.current!)
+          )
 
-        if (localStreamRef.current) {
-          localStreamRef.current.getTracks().forEach((track) => pc.addTrack(track, localStreamRef.current!))
-        }
-
-        pc.onicecandidate = (event) => {
-          if (event.candidate) {
-            enviarMensaje(`ICE::${origenId}::${JSON.stringify(event.candidate)}`)
+          pc.onicecandidate = (event) => {
+            if (event.candidate) {
+              enviarMensaje(`ICE::${origenId}::${JSON.stringify(event.candidate)}`)
+            }
           }
+
+          pc.ontrack = (event) => {
+            if (videoRef.current) videoRef.current.srcObject = event.streams[0]
+          }
+
+          await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(payload)))
+          const answer = await pc.createAnswer()
+          await pc.setLocalDescription(answer)
+          enviarMensaje(`ANSWER::${origenId}::${JSON.stringify(answer)}`)
         }
 
-        pc.ontrack = (event) => {
-          if (videoRef.current) videoRef.current.srcObject = event.streams[0]
+        if (tipo === 'ICE' && pcRef.current) {
+          const candidate = new RTCIceCandidate(JSON.parse(payload))
+          await pcRef.current.addIceCandidate(candidate)
         }
-
-        await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(payload)))
-        const answer = await pc.createAnswer()
-        await pc.setLocalDescription(answer)
-        enviarMensaje(`ANSWER::${origenId}::${JSON.stringify(answer)}`)
-      }
-
-      if (tipo === 'ICE' && pcRef.current) {
-        const candidate = new RTCIceCandidate(JSON.parse(payload))
-        await pcRef.current.addIceCandidate(candidate)
+      } catch (error) {
+        console.error("❌ Error procesando mensaje:", error)
       }
     }
   }
@@ -136,6 +140,7 @@ const Client = () => {
     pcRef.current = null
     localStreamRef.current = null
     setConectado(false)
+
     toast({ title: '🔌 Desconectado', description: 'Saliste de la sala.' })
   }
 
@@ -189,40 +194,23 @@ const Client = () => {
           <Button
             onClick={conectar}
             disabled={!salaId || !userId || conectando || conectado}
-            className={`gap-2 transition-all duration-300 ${
-              conectado ? 'bg-green-600 hover:bg-green-700' : ''
-            }`}
+            className={`gap-2 transition-all duration-300 ${conectado ? 'bg-green-600 hover:bg-green-700' : ''}`}
           >
             {conectado ? <PlugConnected size={18} /> : <PlugZap size={18} className="animate-pulse" />}
             {conectado ? '🔌 Conectado' : conectando ? 'Conectando...' : '✅ Conectar'}
           </Button>
 
-          <Button
-            variant="secondary"
-            onClick={toggleCamara}
-            disabled={!conectado}
-            className="gap-2 transition hover:scale-105"
-          >
+          <Button variant="secondary" onClick={toggleCamara} disabled={!conectado} className="gap-2 transition hover:scale-105">
             {camaraActiva ? <VideoOff size={18} /> : <Video size={18} />}
             {camaraActiva ? 'Apagar Cámara' : 'Prender Cámara'}
           </Button>
 
-          <Button
-            variant="secondary"
-            onClick={toggleMicrofono}
-            disabled={!conectado}
-            className="gap-2 transition hover:scale-105"
-          >
+          <Button variant="secondary" onClick={toggleMicrofono} disabled={!conectado} className="gap-2 transition hover:scale-105">
             {microfonoActivo ? <MicOff size={18} /> : <Mic size={18} />}
             {microfonoActivo ? 'Apagar Micrófono' : 'Prender Micrófono'}
           </Button>
 
-          <Button
-            variant="destructive"
-            onClick={desconectar}
-            disabled={!conectado}
-            className="gap-2 transition hover:scale-105"
-          >
+          <Button variant="destructive" onClick={desconectar} disabled={!conectado} className="gap-2 transition hover:scale-105">
             <XCircle size={18} /> Desconectar
           </Button>
         </div>
