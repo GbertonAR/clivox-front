@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/use-toast'
 import {
@@ -32,7 +32,7 @@ const Client = () => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(mensaje)
     } else {
-      console.warn("⚠️ WebSocket no está listo.")
+      console.warn('⚠️ WebSocket no está listo para enviar mensajes.')
     }
   }
 
@@ -53,9 +53,8 @@ const Client = () => {
 
     setConectando(true)
 
-    const ws = new WebSocket(
-      `wss://clivox-backend-cea4bzfcahbpf9fw.westus-01.azurewebsites.net/ws/cliente/${salaId}/${userId}`
-    )
+    const wsUrl = `wss://clivox-backend-cea4bzfcahbpf9fw.westus-01.azurewebsites.net/ws/cliente/${salaId}/${userId}`
+    const ws = new WebSocket(wsUrl)
     wsRef.current = ws
 
     try {
@@ -81,9 +80,15 @@ const Client = () => {
     ws.onclose = () => {
       setConectado(false)
       wsRef.current = null
+      // Cerrar y limpiar conexión WebRTC si está abierta
+      if (pcRef.current) {
+        pcRef.current.close()
+        pcRef.current = null
+      }
     }
 
-    ws.onerror = () => {
+    ws.onerror = (err) => {
+      console.error('WebSocket error:', err)
       setConectado(false)
       toast({
         variant: 'destructive',
@@ -93,11 +98,13 @@ const Client = () => {
     }
 
     ws.onmessage = async (event) => {
+      console.log('[WS] Mensaje recibido:', event.data)
       try {
         const [tipo, origenId, payload] = event.data.split('::')
         if (!tipo || !origenId || !payload) return
 
         if (tipo === 'OFFER') {
+          console.log('[WebRTC] Recibida OFFER de', origenId)
           const pc = new RTCPeerConnection(iceServers)
           pcRef.current = pc
 
@@ -126,7 +133,8 @@ const Client = () => {
           await pcRef.current.addIceCandidate(candidate)
         }
       } catch (error) {
-        console.error("❌ Error procesando mensaje:", error)
+        console.error('[WS] Error:', error)
+        console.error('❌ Error procesando mensaje:', error)
       }
     }
   }
@@ -157,6 +165,13 @@ const Client = () => {
     })
     setMicrofonoActivo(!microfonoActivo)
   }
+
+  // Limpieza al desmontar el componente
+  useEffect(() => {
+    return () => {
+      desconectar()
+    }
+  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#6a11cb] to-[#2575fc] p-6 flex items-center justify-center">
