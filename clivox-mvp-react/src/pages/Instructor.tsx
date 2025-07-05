@@ -19,6 +19,16 @@ const Instructor = () => {
   const [sesionIniciada, setSesionIniciada] = useState(false)
   const [horaSesion, setHoraSesion] = useState<string | null>(null)
 
+  const [fechaHora, setFechaHora] = useState(new Date().toLocaleString())
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFechaHora(new Date().toLocaleString())
+    }, 1000) // actualiza cada 1 segundo
+
+    return () => clearInterval(interval)
+  }, [])
+
   useEffect(() => {
     navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((stream) => {
       if (videoRef.current) videoRef.current.srcObject = stream
@@ -235,6 +245,13 @@ const iniciarConexion = () => {
           playsInline
           className="w-full rounded-lg border border-slate-200 shadow-md"
         />
+
+        <div className="text-center text-sm text-slate-500 pt-6">
+          <hr className="my-4 border-slate-300" />
+          <p>🧪 Versión Beta 1.0 — {fechaHora}</p>
+        </div>
+
+
       </div>
     </div>
   )
