@@ -11,6 +11,8 @@ node_modules
 dist
 dist-ssr
 *.local
+app_offline.html
+variables.txt
 
 # Editor directories and files
 .vscode/*

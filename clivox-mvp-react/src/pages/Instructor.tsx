@@ -16,6 +16,9 @@ const Instructor = () => {
   const [camaraActiva, setCamaraActiva] = useState(true)
   const [microfonoActivo, setMicrofonoActivo] = useState(true)
 
+  const [sesionIniciada, setSesionIniciada] = useState(false)
+  const [horaSesion, setHoraSesion] = useState<string | null>(null)
+
   useEffect(() => {
     navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((stream) => {
       if (videoRef.current) videoRef.current.srcObject = stream
@@ -33,21 +36,64 @@ const Instructor = () => {
     return () => finalizarSesion(false)
   }, [])
 
+// const iniciarConexion = () => {
+//   if (!salaId) return
+//   const backendUrl = import.meta.env.VITE_API_WS_URL || "ws://localhost:8000"
+//   // const socket = new WebSocket(`${backendUrl}/ws/instructor/${salaId}`)
+//   const instructorId = "instructor1" // podés obtenerlo dinámicamente si querés
+//   const ws = new WebSocket(`${backendUrl}/ws/instructor/${salaId}/${instructorId}`)
+
+
+//   setWs(ws)
+
+//   ws.onmessage = async (event) => {
+//     const [type, clientId, payload] = event.data.split('::')
+
+//     if (type === 'NEW_CLIENT') {
+//       await crearConexion(clientId, ws)
+      
+//     } else if (type === 'ANSWER') {
+//       const desc = new RTCSessionDescription(JSON.parse(payload))
+//       await peers.current[clientId]?.setRemoteDescription(desc)
+//     } else if (type === 'ICE') {
+//       const candidate = new RTCIceCandidate(JSON.parse(payload))
+//       await peers.current[clientId]?.addIceCandidate(candidate)
+//     }
+//   }
+// }
+
 const iniciarConexion = () => {
   if (!salaId) return
+
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    toast({
+      title: 'Conexión ya abierta',
+      description: 'Ya estás conectado a una sala.',
+    })
+    return
+  }
+
   const backendUrl = import.meta.env.VITE_API_WS_URL || "ws://localhost:8000"
-  // const socket = new WebSocket(`${backendUrl}/ws/instructor/${salaId}`)
   const instructorId = "instructor1" // podés obtenerlo dinámicamente si querés
-  const ws = new WebSocket(`${backendUrl}/ws/instructor/${salaId}/${instructorId}`)
+  const newWs = new WebSocket(`${backendUrl}/ws/instructor/${salaId}/${instructorId}`)
 
+  setWs(newWs)
 
-  setWs(socket)
+  newWs.onopen = () => {
+    toast({
+      title: 'Conexión establecida',
+      description: `Conectado a la sala ${salaId}`,
+    })
+    setSesionIniciada(true)
+    setHoraSesion(new Date().toLocaleTimeString())
+  }
 
-  socket.onmessage = async (event) => {
+  newWs.onmessage = async (event) => {
     const [type, clientId, payload] = event.data.split('::')
 
     if (type === 'NEW_CLIENT') {
-      await crearConexion(clientId, socket)
+      await crearConexion(clientId, newWs)
+      
     } else if (type === 'ANSWER') {
       const desc = new RTCSessionDescription(JSON.parse(payload))
       await peers.current[clientId]?.setRemoteDescription(desc)
@@ -56,9 +102,26 @@ const iniciarConexion = () => {
       await peers.current[clientId]?.addIceCandidate(candidate)
     }
   }
+
+  newWs.onclose = () => {
+    toast({
+      title: 'Conexión cerrada',
+      description: 'La conexión WebSocket se ha cerrado.',
+    })
+    setWs(null)
+  }
+
+  newWs.onerror = (error) => {
+    toast({
+      variant: 'destructive',
+      title: 'Error de conexión',
+      description: 'Ocurrió un error con la conexión WebSocket.',
+    })
+  }
 }
 
-  const crearConexion = async (clientId: string, socket: WebSocket) => {
+
+  const crearConexion = async (clientId: string, ws: WebSocket) => {
     const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] })
     peers.current[clientId] = pc
 
@@ -66,13 +129,13 @@ const iniciarConexion = () => {
 
     pc.onicecandidate = (event) => {
       if (event.candidate) {
-        socket.send(`ICE::${clientId}::${JSON.stringify(event.candidate)}`)
+        ws.send(`ICE::${clientId}::${JSON.stringify(event.candidate)}`)
       }
     }
 
     const offer = await pc.createOffer()
     await pc.setLocalDescription(offer)
-    socket.send(`OFFER::${clientId}::${JSON.stringify(offer)}`)
+    ws.send(`OFFER::${clientId}::${JSON.stringify(offer)}`)
   }
 
   const finalizarSesion = (redirigir = true) => {
@@ -97,6 +160,8 @@ const iniciarConexion = () => {
     if (redirigir) {
       setTimeout(() => navigate('/dashboard'), 1500)
     }
+    setSesionIniciada(false)
+    setHoraSesion(null)
   }
 
   const toggleCamara = () => {
@@ -123,6 +188,12 @@ const iniciarConexion = () => {
           🎓 <span>Modo Instructor</span>
         </h1>
 
+        {sesionIniciada && (
+          <p className="text-green-400 text-center text-sm font-semibold mt-[-10px]">
+            ✅ Sesión iniciada a las {horaSesion}
+          </p>
+        )}
+
         <input
           type="text"
           placeholder="🎯 ID de la sala"
@@ -132,8 +203,12 @@ const iniciarConexion = () => {
         />
 
         <div className="flex flex-wrap justify-center gap-3">
-          <Button onClick={iniciarConexion} className="gap-2">
-            🔴 Iniciar sesión en sala
+          <Button
+            onClick={iniciarConexion}
+            className={`gap-2 ${sesionIniciada ? 'bg-green-600 hover:bg-green-700' : ''}`}
+            disabled={sesionIniciada}
+          >
+            {sesionIniciada ? '✅ Sesión Iniciada' : '🔴 Iniciar sesión en sala'}
           </Button>
 
           <Button variant="secondary" onClick={toggleCamara} className="gap-2">
