@@ -9,9 +9,9 @@ import {
   User,
   Wifi,
   PlugZap,
-  
+  PlugConnected,
+  XCircle
 } from 'lucide-react'
-import { CheckCircle } from 'lucide-react'
 
 const Client = () => {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -26,6 +26,16 @@ const Client = () => {
   const [conectado, setConectado] = useState(false)
   const [conectando, setConectando] = useState(false)
 
+  const iceServers = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
+
+  const enviarMensaje = (mensaje: string) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(mensaje)
+    } else {
+      console.warn("⚠️ WebSocket no está listo para enviar mensajes.")
+    }
+  }
+
   const conectar = async () => {
     if (!salaId || !userId) {
       toast({
@@ -36,7 +46,14 @@ const Client = () => {
       return
     }
 
+    // Previene múltiples conexiones
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      toast({ title: 'Ya estás conectado a una sala.' })
+      return
+    }
+
     setConectando(true)
+
     const ws = new WebSocket(`wss://clivox-backend-cea4bzfcahbpf9fw.westus-01.azurewebsites.net/${salaId}/${userId}`)
     wsRef.current = ws
 
@@ -60,14 +77,27 @@ const Client = () => {
       toast({ title: '🔌 Conectado', description: 'Te uniste a la sala exitosamente.' })
     }
 
-    ws.onclose = () => setConectado(false)
-    ws.onerror = () => setConectado(false)
+    ws.onclose = () => {
+      setConectado(false)
+      wsRef.current = null
+    }
+
+    ws.onerror = () => {
+      setConectado(false)
+      wsRef.current = null
+    }
 
     ws.onmessage = async (event) => {
-      const [tipo, origenId, payload] = event.data.split('::', 3)
+      const partes = event.data.split('::')
+      if (partes.length < 3) {
+        console.warn("⚠️ Mensaje WebSocket malformado:", event.data)
+        return
+      }
+
+      const [tipo, origenId, payload] = partes
 
       if (tipo === 'OFFER') {
-        const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] })
+        const pc = new RTCPeerConnection(iceServers)
         pcRef.current = pc
 
         if (localStreamRef.current) {
@@ -76,7 +106,7 @@ const Client = () => {
 
         pc.onicecandidate = (event) => {
           if (event.candidate) {
-            ws.send(`ICE::${origenId}::${JSON.stringify(event.candidate)}`)
+            enviarMensaje(`ICE::${origenId}::${JSON.stringify(event.candidate)}`)
           }
         }
 
@@ -87,12 +117,26 @@ const Client = () => {
         await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(payload)))
         const answer = await pc.createAnswer()
         await pc.setLocalDescription(answer)
-        ws.send(`ANSWER::${origenId}::${JSON.stringify(answer)}`)
-      } else if (tipo === 'ICE' && pcRef.current) {
+        enviarMensaje(`ANSWER::${origenId}::${JSON.stringify(answer)}`)
+      }
+
+      if (tipo === 'ICE' && pcRef.current) {
         const candidate = new RTCIceCandidate(JSON.parse(payload))
         await pcRef.current.addIceCandidate(candidate)
       }
     }
+  }
+
+  const desconectar = () => {
+    wsRef.current?.close()
+    pcRef.current?.close()
+    localStreamRef.current?.getTracks().forEach((track) => track.stop())
+
+    wsRef.current = null
+    pcRef.current = null
+    localStreamRef.current = null
+    setConectado(false)
+    toast({ title: '🔌 Desconectado', description: 'Saliste de la sala.' })
   }
 
   const toggleCamara = () => {
@@ -111,7 +155,6 @@ const Client = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#6a11cb] to-[#2575fc] p-6 flex items-center justify-center">
-
       <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-2xl space-y-6 border border-blue-100">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-2">
@@ -172,6 +215,15 @@ const Client = () => {
           >
             {microfonoActivo ? <MicOff size={18} /> : <Mic size={18} />}
             {microfonoActivo ? 'Apagar Micrófono' : 'Prender Micrófono'}
+          </Button>
+
+          <Button
+            variant="destructive"
+            onClick={desconectar}
+            disabled={!conectado}
+            className="gap-2 transition hover:scale-105"
+          >
+            <XCircle size={18} /> Desconectar
           </Button>
         </div>
 
