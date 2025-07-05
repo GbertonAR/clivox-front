@@ -37,7 +37,7 @@ const Client = () => {
     }
 
     setConectando(true)
-    const ws = new WebSocket(`ws://localhost:8000/ws/cliente/${salaId}/${userId}`)
+    const ws = new WebSocket(`wss://clivox-backend-cea4bzfcahbpf9fw.westus-01.azurewebsites.net/${salaId}/${userId}`)
     wsRef.current = ws
 
     try {
