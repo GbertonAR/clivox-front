@@ -85,7 +85,8 @@ const iniciarConexion = () => {
 
   console.log("🌐 WebSocket Antes de crear URL:", import.meta.env.VITE_API_WS_URL)
 
-  const backendUrl = import.meta.env.VITE_API_WS_URL || "ws://localhost:8000"
+  // const backendUrl = import.meta.env.VITE_API_WS_URL || "ws://localhost:8000"
+  const backendUrl = "ws://clivox-backend-cea4bzfcahbpf9fw.westus-01.azurewebsites.net"
   console.log("🌐 WebSocket URL:", import.meta.env.VITE_API_WS_URL)
 
   const instructorId = "instructor1" // podés obtenerlo dinámicamente si querés
