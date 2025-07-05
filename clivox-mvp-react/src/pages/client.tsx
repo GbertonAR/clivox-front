@@ -53,9 +53,14 @@ const Client = () => {
 
     setConectando(true)
 
-    const wsUrl = `wss://clivox-backend-cea4bzfcahbpf9fw.westus-01.azurewebsites.net/ws/cliente/${salaId}/${userId}`
-    const ws = new WebSocket(wsUrl)
-    wsRef.current = ws
+
+    const socketUrl = `wss://clivox-backend-cea4bzfcahbpf9fw.westus-01.azurewebsites.net/ws/cliente/${salaId}/${userId}`
+    console.log("🌐 Intentando conexión WebSocket a:", socketUrl)
+    const ws = new WebSocket(socketUrl)
+
+    // const wsUrl = `wss://clivox-backend-cea4bzfcahbpf9fw.westus-01.azurewebsites.net/ws/cliente/${salaId}/${userId}`
+    // const ws = new WebSocket(wsUrl)
+    // wsRef.current = ws
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
