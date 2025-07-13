@@ -102,7 +102,27 @@ const ACSCliente: React.FC = () => {
 
   return (
     <FluentThemeProvider fluentTheme={theme}>
-      <div style={{ height: '100vh', width: '100vw' }}>
+      <div
+        style={{
+          height: '100vh',
+          width: '100vw',
+          backgroundImage: 'url(/public/img/test1.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          position: 'relative'
+        }}
+      >
+        <img
+          src="/public/img/logo.png"
+          alt="Logo"
+          style={{
+            position: 'absolute',
+            top: 20,
+            left: 20,
+            height: 60,
+            zIndex: 10
+          }}
+        />
         <CallComposite adapter={adapter} />
       </div>
     </FluentThemeProvider>

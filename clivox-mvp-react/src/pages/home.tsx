@@ -23,21 +23,13 @@ const Home = () => {
             </div>
         <p className="subtitle">Comunicaciones en tiempo real con calidad profesional</p>
         <div className="role-buttons">
-          <Link to="/instructor">
-            <button className="role-btn instructor">Ingresar como Instructor</button>
-          </Link>
-          <Link to="/cliente">
-            <button className="role-btn cliente">Ingresar como Cliente</button>
-          </Link>
-          <Link to="/videollamada">
-            <button className="role-btn videollamada">Videollamada</button> {/* ✅ agregado */}
-          </Link>
           <Link to="/acs-instructor">
-            <button className="role-btn acs-instructor">ACSInstructor</button> {/* ✅ agregado */}
+            <button className="role-btn acs-instructor">Ingresar como Instructor</button>
           </Link>
           <Link to="/acs-cliente">
-            <button className="role-btn acs-cliente">Videollamada</button> {/* ✅ agregado */}
-          </Link>                    
+            <button className="role-btn acs-cliente">Ingresar como Cliente</button>
+          </Link>
+
         </div>
       </div>
     </div>

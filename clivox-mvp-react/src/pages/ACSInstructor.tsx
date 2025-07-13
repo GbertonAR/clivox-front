@@ -65,7 +65,14 @@ const ACSInstructor: React.FC = () => {
           credential,
           locator: { groupId: GROUP_ID },
           endpointUrl: ACS_ENDPOINT
+        },
+        {
+          callCompositeOptions: {
+              logoUrl: '/img/logo.png',
+              backgroundImageUrl: '/img/test1.jpg'
+          }
         })
+      
 
         if (!disposed) {
           setAdapter(newAdapter)
@@ -99,7 +106,28 @@ const ACSInstructor: React.FC = () => {
 
   return (
     <FluentThemeProvider fluentTheme={theme}>
-      <div style={{ height: '100vh', width: '100vw' }}>
+      <div
+        style={{
+          height: '100vh',
+          width: '100vw',
+          background: 'linear-gradient(135deg, #00c9ff, #6a11cb, #00ff95)',
+          backgroundSize: '300% 300%',
+          animation: 'gradientShift 15s ease infinite',
+          backgroundPosition: 'center',
+          position: 'relative'
+        }}
+      >
+        <img
+          src="/public/img/logo.png"
+          alt="Logo"
+          style={{
+            position: 'absolute',
+            top: 20,
+            left: 20,
+            height: 60,
+            zIndex: 10
+          }}
+        />
         <CallComposite adapter={adapter} />
       </div>
     </FluentThemeProvider>

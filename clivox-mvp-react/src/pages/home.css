@@ -58,12 +58,12 @@
 }
 
 /* Botón instructor en turquesa */
-.role-btn.instructor {
+.role-btn.acs-instructor {
   background-color: #4dd0e1;
 }
 
 /* Botón cliente en lavanda */
-.role-btn.cliente {
+.role-btn.acs-cliente {
   background-color: #9575cd;
 }
 
