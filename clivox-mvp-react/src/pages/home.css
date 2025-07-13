@@ -83,3 +83,20 @@
     font-size: 1rem;
   }
 }
+
+.role-btn.videollamada {
+  background-color: #4caf50;
+  color: white;
+  font-weight: bold;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 6px;
+  margin-top: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.role-btn.videollamada:hover {
+  background-color: #45a049;
+}

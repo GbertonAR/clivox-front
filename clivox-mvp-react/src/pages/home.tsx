@@ -18,7 +18,7 @@ const Home = () => {
                 borderRadius: '8px',
                 display: 'inline-block',
                 userSelect: 'none'
-            }}>
+              }}>
                 👋 Bienvenido a Clivox
             </div>
         <p className="subtitle">Comunicaciones en tiempo real con calidad profesional</p>
@@ -29,6 +29,15 @@ const Home = () => {
           <Link to="/cliente">
             <button className="role-btn cliente">Ingresar como Cliente</button>
           </Link>
+          <Link to="/videollamada">
+            <button className="role-btn videollamada">Videollamada</button> {/* ✅ agregado */}
+          </Link>
+          <Link to="/acs-instructor">
+            <button className="role-btn acs-instructor">ACSInstructor</button> {/* ✅ agregado */}
+          </Link>
+          <Link to="/acs-cliente">
+            <button className="role-btn acs-cliente">Videollamada</button> {/* ✅ agregado */}
+          </Link>                    
         </div>
       </div>
     </div>

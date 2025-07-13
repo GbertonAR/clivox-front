@@ -9,7 +9,7 @@ import {
   User,
   Wifi,
   PlugZap,
-  PlugConnected,
+  Plug2,
   XCircle,
 } from 'lucide-react'
 
