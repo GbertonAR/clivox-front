@@ -8,7 +8,13 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+
+      includeAssets: [
+        'favicon.ico',
+        'apple-touch-icon.png',
+        'mask-icon.svg'
+      ],
+
       manifest: {
         name: 'Clivox LMS',
         short_name: 'Clivox',
@@ -35,21 +41,33 @@ export default defineConfig({
             purpose: 'any maskable'
           }
         ]
+      },
+
+      // 🔥 FIX DEFINITIVO PARA AZURE / ORYX / WORKBOX
+      workbox: {
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10 MB
+        globIgnores: ['**/*.map']
       }
     })
   ],
+
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src'),
-    },
+      '@': path.resolve(__dirname, 'src')
+    }
   },
+
   server: {
     proxy: {
       '/api': {
         target: 'http://localhost:8000',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '/api'),
-      },
-    },
+        rewrite: (p) => p.replace(/^\/api/, '/api')
+      }
+    }
   },
+
+  build: {
+    sourcemap: false
+  }
 })
