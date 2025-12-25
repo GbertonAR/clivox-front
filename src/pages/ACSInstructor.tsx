@@ -10,7 +10,12 @@ import {
   FluentThemeProvider
 } from '@azure/communication-react'
 import { Spinner } from '@fluentui/react-components'
+import { initializeIcons } from '@fluentui/react/lib/Icons'
 import { clivoxTheme } from '../clivoxTheme'
+
+// Initialize all Fluent UI icons once to suppress "icon not registered" warnings
+// The check prevents re-initialization on hot module reload
+initializeIcons(undefined, { disableWarnings: true })
 import { Users, Edit3, Monitor, Zap, Layout, X, Palette, Trash2, Video } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
