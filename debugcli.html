@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Clivox WS Test</title>
+</head>
+<body>
+  <h2>🧪 Prueba WebSocket Clivox</h2>
+  <label>Sala ID: <input id="sala" value="prueba123" /></label><br />
+  <label>Usuario ID: <input id="usuario" value="cliente1" /></label><br />
+  <button onclick="conectar()">🔌 Conectar</button>
+  <button onclick="enviarPing()">📤 Enviar PING</button>
+
+  <pre id="log"></pre>
+
+  <script>
+    let ws = null;
+
+    function log(msg) {
+      const logEl = document.getElementById('log');
+      logEl.textContent += msg + '\n';
+    }
+
+    function conectar() {
+      const sala = document.getElementById('sala').value;
+      const usuario = document.getElementById('usuario').value;
+      const url = `wss://clivox-backend-cea4bzfcahbpf9fw.westus-01.azurewebsites.net/ws/client/${sala}/${usuario}`;
+      log(`🌐 Conectando a: ${url}`);
+      ws = new WebSocket(url);
+
+      ws.onopen = () => log('✅ WebSocket conectado');
+      ws.onerror = (err) => log('❌ Error WebSocket: ' + err.message);
+      ws.onclose = () => log('🔌 WebSocket cerrado');
+      ws.onmessage = (event) => log('📩 Mensaje recibido: ' + event.data);
+    }
+
+    function enviarPing() {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send('PING::otroUsuario::Hola desde el tester!');
+        log('📤 Enviado: PING::otroUsuario::Hola desde el tester!');
+      } else {
+        log('⚠️ WebSocket no está abierto.');
+      }
+    }
+  </script>
+</body>
+</html>

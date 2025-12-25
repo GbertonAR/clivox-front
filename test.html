@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WebSocket Tester Simple</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 1rem;
+      background: #f0f4ff;
+    }
+    label, input, button {
+      font-size: 1rem;
+      margin: 0.5rem 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    input, button {
+      padding: 0.5rem;
+    }
+    #logs {
+      margin-top: 1rem;
+      height: 250px;
+      overflow-y: auto;
+      background: white;
+      border: 1px solid #ccc;
+      padding: 0.5rem;
+      white-space: pre-wrap;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tester WebSocket Simple</h1>
+
+  <label for="url">URL WebSocket:</label>
+  <input type="text" id="url" value="wss://clivox-backend-cea4bzfcahbpf9fw.westus-01.azurewebsites.net/ws/client/test23/cliente1" />
+
+  <button id="connectBtn">Conectar</button>
+  <button id="disconnectBtn" disabled>Desconectar</button>
+
+  <label for="message">Mensaje a enviar:</label>
+  <input type="text" id="message" placeholder="Tipo::Destino::Mensaje (ej: PING::otroUsuario::Hola)" disabled />
+
+  <button id="sendBtn" disabled>Enviar Mensaje</button>
+
+  <div id="logs"></div>
+
+  <script>
+    const urlInput = document.getElementById('url')
+    const connectBtn = document.getElementById('connectBtn')
+    const disconnectBtn = document.getElementById('disconnectBtn')
+    const messageInput = document.getElementById('message')
+    const sendBtn = document.getElementById('sendBtn')
+    const logs = document.getElementById('logs')
+
+    let ws = null
+
+    function log(msg) {
+      const now = new Date().toLocaleTimeString()
+      logs.textContent += `[${now}] ${msg}\n`
+      logs.scrollTop = logs.scrollHeight
+    }
+
+    connectBtn.addEventListener('click', () => {
+      const url = urlInput.value.trim()
+      if (!url) {
+        alert('Ingresá una URL válida')
+        return
+      }
+
+      log(`🌐 Conectando a: ${url}`)
+      ws = new WebSocket(url)
+
+      ws.onopen = () => {
+        log('✅ WebSocket conectado')
+        connectBtn.disabled = true
+        disconnectBtn.disabled = false
+        messageInput.disabled = false
+        sendBtn.disabled = false
+      }
+
+      ws.onmessage = (event) => {
+        log(`📥 Recibido: ${event.data}`)
+      }
+
+      ws.onclose = () => {
+        log('❌ WebSocket desconectado')
+        connectBtn.disabled = false
+        disconnectBtn.disabled = true
+        messageInput.disabled = true
+        sendBtn.disabled = true
+        ws = null
+      }
+
+      ws.onerror = (err) => {
+        log('⚠️ Error WebSocket')
+        console.error('WebSocket error:', err)
+      }
+    })
+
+    disconnectBtn.addEventListener('click', () => {
+      if (ws) {
+        ws.close()
+      }
+    })
+
+    sendBtn.addEventListener('click', () => {
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        alert('WebSocket no está conectado')
+        return
+      }
+      const msg = messageInput.value.trim()
+      if (!msg) {
+        alert('Ingresá un mensaje para enviar')
+        return
+      }
+      ws.send(msg)
+      log(`📤 Enviado: ${msg}`)
+      messageInput.value = ''
+    })
+  </script>
+</body>
+</html>

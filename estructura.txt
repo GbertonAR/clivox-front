@@ -1,0 +1,19 @@
+ El volumen de la unidad C no tiene etiqueta.
+ El n£mero de serie del volumen es: 68CA-4415
+
+ Directorio de C:\GBerton2025\Desarrollos\clivox\clivox-front
+
+16/07/2025  14:01    <DIR>          .
+16/07/2025  11:21    <DIR>          ..
+04/07/2025  15:17    <DIR>          .github
+13/07/2025  06:55               391 .gitignore
+04/07/2025  10:12    <DIR>          clivox
+04/07/2025  10:13    <DIR>          clivox-btn
+04/07/2025  10:14    <DIR>          clivox-diag
+15/07/2025  12:23    <DIR>          clivox-mvp-react
+05/07/2025  10:01             1.561 debugcli.html
+16/07/2025  14:01                 0 estructura.txt
+04/07/2025  08:19    <DIR>          src
+05/07/2025  10:20             3.444 test.html
+               4 archivos          5.396 bytes
+               8 dirs      16.412.672 bytes libres

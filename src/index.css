@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 231 30% 10%; /* Dark Blue/Slate */
+    --foreground: 210 40% 98%;
+    /* ... keep other vars roughly same or adjust if needed, but primary focus is overrides below ... */
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 212 27% 84%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body, html, #root {
+    @apply bg-background text-foreground;
+    height: 100%;
+    margin: 0;
+    overflow: hidden; /* Prevent double scrollbars */
+  }
+}
+
+/* --- CLIVOX & ACS OVERRIDES --- */
+
+/* Force ACS Composite to be transparent so our gradient shows through */
+.ms-CallComposite-CallPage {
+  background-color: transparent !important;
+}
+
+/* Remove default white backgrounds from ACS generic panels if they appear */
+div[role="main"] {
+  background-color: transparent !important;
+}
+
+/* Ensure the lobby/configuration screen is also respecting theme or transparent */
+.ms-CallComposite-ConfigurationPage {
+    background-color: transparent !important;
+}
+
+/* Hide potential scrollbars in full screen video */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #4f46e5; /* Indigo-600 */
+  border-radius: 4px;
+}
