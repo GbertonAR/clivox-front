@@ -46,94 +46,94 @@ const Instructor = () => {
     return () => finalizarSesion(false)
   }, [])
 
-// const iniciarConexion = () => {
-//   if (!salaId) return
-//   const backendUrl = import.meta.env.VITE_API_WS_URL || "ws://localhost:8000"
-//   // const socket = new WebSocket(`${backendUrl}/ws/instructor/${salaId}`)
-//   const instructorId = "instructor1" // podés obtenerlo dinámicamente si querés
-//   const ws = new WebSocket(`${backendUrl}/ws/instructor/${salaId}/${instructorId}`)
+  // const iniciarConexion = () => {
+  //   if (!salaId) return
+  //   const backendUrl = import.meta.env.VITE_API_WS_URL || "ws://localhost:8000"
+  //   // const socket = new WebSocket(`${backendUrl}/ws/instructor/${salaId}`)
+  //   const instructorId = "instructor1" // podés obtenerlo dinámicamente si querés
+  //   const ws = new WebSocket(`${backendUrl}/ws/instructor/${salaId}/${instructorId}`)
 
 
-//   setWs(ws)
+  //   setWs(ws)
 
-//   ws.onmessage = async (event) => {
-//     const [type, clientId, payload] = event.data.split('::')
+  //   ws.onmessage = async (event) => {
+  //     const [type, clientId, payload] = event.data.split('::')
 
-//     if (type === 'NEW_CLIENT') {
-//       await crearConexion(clientId, ws)
-      
-//     } else if (type === 'ANSWER') {
-//       const desc = new RTCSessionDescription(JSON.parse(payload))
-//       await peers.current[clientId]?.setRemoteDescription(desc)
-//     } else if (type === 'ICE') {
-//       const candidate = new RTCIceCandidate(JSON.parse(payload))
-//       await peers.current[clientId]?.addIceCandidate(candidate)
-//     }
-//   }
-// }
+  //     if (type === 'NEW_CLIENT') {
+  //       await crearConexion(clientId, ws)
 
-const iniciarConexion = () => {
-  if (!salaId) return
+  //     } else if (type === 'ANSWER') {
+  //       const desc = new RTCSessionDescription(JSON.parse(payload))
+  //       await peers.current[clientId]?.setRemoteDescription(desc)
+  //     } else if (type === 'ICE') {
+  //       const candidate = new RTCIceCandidate(JSON.parse(payload))
+  //       await peers.current[clientId]?.addIceCandidate(candidate)
+  //     }
+  //   }
+  // }
 
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    toast({
-      title: 'Conexión ya abierta',
-      description: 'Ya estás conectado a una sala.',
-    })
-    return
-  }
+  const iniciarConexion = () => {
+    if (!salaId) return
 
-  console.log("🌐 WebSocket Antes de crear URL:", import.meta.env.VITE_API_WS_URL)
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      toast({
+        title: 'Conexión ya abierta',
+        description: 'Ya estás conectado a una sala.',
+      })
+      return
+    }
 
-  // const backendUrl = import.meta.env.VITE_API_WS_URL || "ws://localhost:8000"
-  const backendUrl = "wss://clivox-backend-cea4bzfcahbpf9fw.westus-01.azurewebsites.net"
-  console.log("🌐 WebSocket URL:", import.meta.env.VITE_API_WS_URL)
+    console.log("🌐 WebSocket Antes de crear URL:", import.meta.env.VITE_API_WS_URL)
 
-  const instructorId = "instructor1" // podés obtenerlo dinámicamente si querés
-  const newWs = new WebSocket(`${backendUrl}/ws/instructor/${salaId}/${instructorId}`)
+    // const backendUrl = import.meta.env.VITE_API_WS_URL || "ws://localhost:8000"
+    const backendUrl = "wss://clivox-backend-cea4bzfcahbpf9fw.westus-01.azurewebsites.net"
+    console.log("🌐 WebSocket URL:", import.meta.env.VITE_API_WS_URL)
 
-  setWs(newWs)
+    const instructorId = "instructor1" // podés obtenerlo dinámicamente si querés
+    const newWs = new WebSocket(`${backendUrl}/ws/instructor/${salaId}/${instructorId}`)
 
-  newWs.onopen = () => {
-    toast({
-      title: 'Conexión establecida',
-      description: `Conectado a la sala ${salaId}`,
-    })
-    setSesionIniciada(true)
-    setHoraSesion(new Date().toLocaleTimeString())
-  }
+    setWs(newWs)
 
-  newWs.onmessage = async (event) => {
-    const [type, clientId, payload] = event.data.split('::')
+    newWs.onopen = () => {
+      toast({
+        title: 'Conexión establecida',
+        description: `Conectado a la sala ${salaId}`,
+      })
+      setSesionIniciada(true)
+      setHoraSesion(new Date().toLocaleTimeString())
+    }
 
-    if (type === 'NEW_CLIENT') {
-      await crearConexion(clientId, newWs)
-      
-    } else if (type === 'ANSWER') {
-      const desc = new RTCSessionDescription(JSON.parse(payload))
-      await peers.current[clientId]?.setRemoteDescription(desc)
-    } else if (type === 'ICE') {
-      const candidate = new RTCIceCandidate(JSON.parse(payload))
-      await peers.current[clientId]?.addIceCandidate(candidate)
+    newWs.onmessage = async (event) => {
+      const [type, clientId, payload] = event.data.split('::')
+
+      if (type === 'NEW_CLIENT') {
+        await crearConexion(clientId, newWs)
+
+      } else if (type === 'ANSWER') {
+        const desc = new RTCSessionDescription(JSON.parse(payload))
+        await peers.current[clientId]?.setRemoteDescription(desc)
+      } else if (type === 'ICE') {
+        const candidate = new RTCIceCandidate(JSON.parse(payload))
+        await peers.current[clientId]?.addIceCandidate(candidate)
+      }
+    }
+
+    newWs.onclose = () => {
+      toast({
+        title: 'Conexión cerrada',
+        description: 'La conexión WebSocket se ha cerrado.',
+      })
+      setWs(null)
+    }
+
+    newWs.onerror = (error) => {
+      toast({
+        variant: 'destructive',
+        title: 'Error de conexión',
+        description: 'Ocurrió un error con la conexión WebSocket.',
+      })
     }
   }
-
-  newWs.onclose = () => {
-    toast({
-      title: 'Conexión cerrada',
-      description: 'La conexión WebSocket se ha cerrado.',
-    })
-    setWs(null)
-  }
-
-  newWs.onerror = (error) => {
-    toast({
-      variant: 'destructive',
-      title: 'Error de conexión',
-      description: 'Ocurrió un error con la conexión WebSocket.',
-    })
-  }
-}
 
 
   const crearConexion = async (clientId: string, ws: WebSocket) => {

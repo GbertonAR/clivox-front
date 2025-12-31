@@ -16,7 +16,7 @@ import {
 const colors = ["#6a11cb", "#2575fc", "#00c9ff", "#00ff95"]
 
 const AdminDashboard = () => {
-  const [stats, setStats] = useState<any[]>([])
+  const [stats, setStats] = useState<{ eventos: any[], llamadas: any[] }>({ eventos: [], llamadas: [] })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {

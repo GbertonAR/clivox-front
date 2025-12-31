@@ -4,7 +4,8 @@
 
 @layer base {
   :root {
-    --background: 231 30% 10%; /* Dark Blue/Slate */
+    --background: 231 30% 10%;
+    /* Dark Blue/Slate */
     --foreground: 210 40% 98%;
     /* ... keep other vars roughly same or adjust if needed, but primary focus is overrides below ... */
     --card: 222 47% 11%;
@@ -25,6 +26,31 @@
     --input: 217 33% 17%;
     --ring: 212 27% 84%;
     --radius: 0.5rem;
+
+    /* Variables ultra-creativas de clivox-admin */
+    --neon-blue: 217 91% 60%;
+    --electric-purple: 262 83% 58%;
+    --cosmic-violet: 300 89% 43%;
+    --cyber-pink: 320 100% 74%;
+    --quantum-teal: 180 100% 50%;
+
+    --gradient-cosmic: linear-gradient(135deg, hsl(var(--neon-blue)), hsl(var(--electric-purple)), hsl(var(--cosmic-violet)));
+    --gradient-neon: linear-gradient(45deg, hsl(var(--electric-purple)), hsl(var(--cyber-pink)), hsl(var(--quantum-teal)));
+    --gradient-aurora: linear-gradient(90deg, hsl(var(--neon-blue)), hsl(var(--electric-purple)), hsl(var(--cosmic-violet)), hsl(var(--cyber-pink)));
+
+    --hologram-1: conic-gradient(from 0deg, hsl(var(--neon-blue)), hsl(var(--electric-purple)), hsl(var(--cosmic-violet)), hsl(var(--neon-blue)));
+    --hologram-2: radial-gradient(circle at 30% 70%, hsl(var(--electric-purple) / 0.8), transparent 50%),
+      radial-gradient(circle at 70% 30%, hsl(var(--cyber-pink) / 0.6), transparent 50%),
+      radial-gradient(circle at 50% 50%, hsl(var(--quantum-teal) / 0.4), transparent 50%);
+
+    --shadow-neon-sm: 0 0 10px hsl(var(--electric-purple) / 0.5);
+    --shadow-neon-md: 0 0 20px hsl(var(--electric-purple) / 0.6), 0 0 40px hsl(var(--neon-blue) / 0.3);
+    --shadow-neon-lg: 0 0 30px hsl(var(--electric-purple) / 0.8), 0 0 60px hsl(var(--neon-blue) / 0.5), 0 0 90px hsl(var(--cosmic-violet) / 0.3);
+    --shadow-neon-xl: 0 0 40px hsl(var(--electric-purple) / 1), 0 0 80px hsl(var(--neon-blue) / 0.7), 0 0 120px hsl(var(--cosmic-violet) / 0.5), 0 0 160px hsl(var(--cyber-pink) / 0.3);
+
+    --glass-ultra: rgba(0, 0, 0, 0.3);
+    --glass-border: rgba(255, 255, 255, 0.05);
+    --glass-backdrop: blur(25px) saturate(200%) brightness(120%);
   }
 }
 
@@ -32,11 +58,300 @@
   * {
     @apply border-border;
   }
-  body, html, #root {
+
+  body,
+  html,
+  #root {
     @apply bg-background text-foreground;
     height: 100%;
     margin: 0;
-    overflow: hidden; /* Prevent double scrollbars */
+    overflow: hidden;
+    /* Prevent double scrollbars */
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Efectos glass ultra-avanzados */
+  .glass-ultra {
+    background: var(--glass-ultra);
+    backdrop-filter: var(--glass-backdrop);
+    border: 1px solid var(--glass-border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glass-ultra::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: shimmer 3s infinite;
+  }
+
+  /* Gradientes ultra-creativos */
+  .gradient-cosmic {
+    background: var(--gradient-cosmic);
+  }
+
+  .gradient-neon {
+    background: var(--gradient-neon);
+  }
+
+  .gradient-aurora {
+    background: var(--gradient-aurora);
+    background-size: 300% 300%;
+    animation: aurora-flow 8s ease-in-out infinite;
+  }
+
+  .gradient-text-cosmic {
+    background: var(--gradient-cosmic);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% 200%;
+    animation: gradient-shift 4s ease-in-out infinite;
+  }
+
+  .gradient-text-neon {
+    background: var(--gradient-neon);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease-in-out infinite;
+  }
+
+  /* Efectos holográficos */
+  .hologram-bg {
+    background: var(--hologram-2);
+    animation: hologram-pulse 6s ease-in-out infinite;
+  }
+
+  .hologram-border {
+    position: relative;
+    background: var(--hologram-1);
+    padding: 2px;
+    border-radius: inherit;
+  }
+
+  .hologram-border>* {
+    background: hsl(var(--background));
+    border-radius: inherit;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Sombras neón ultra-intensas */
+  .shadow-neon-sm {
+    box-shadow: var(--shadow-neon-sm);
+  }
+
+  .shadow-neon-md {
+    box-shadow: var(--shadow-neon-md);
+  }
+
+  .shadow-neon-lg {
+    box-shadow: var(--shadow-neon-lg);
+  }
+
+  .shadow-neon-xl {
+    box-shadow: var(--shadow-neon-xl);
+  }
+
+  /* Animaciones ultra-creativas */
+  .floating-cosmic {
+    animation: floating-cosmic 8s ease-in-out infinite;
+  }
+
+  .pulse-neon {
+    animation: pulse-neon 2s ease-in-out infinite alternate;
+  }
+
+  .rotate-hologram {
+    animation: rotate-hologram 20s linear infinite;
+  }
+
+  .slide-up-cosmic {
+    animation: slide-up-cosmic 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
+    transform: translateY(50px) scale(0.95);
+  }
+
+  .scale-in-cosmic {
+    animation: scale-in-cosmic 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  /* Efectos de texto ultra-futuristas */
+  .text-glow-neon {
+    text-shadow:
+      0 0 5px hsl(var(--electric-purple)),
+      0 0 10px hsl(var(--electric-purple)),
+      0 0 15px hsl(var(--electric-purple)),
+      0 0 20px hsl(var(--electric-purple));
+  }
+
+  /* Stagger animations */
+  .stagger-1 {
+    animation-delay: 0.1s;
+  }
+
+  .stagger-2 {
+    animation-delay: 0.2s;
+  }
+
+  .stagger-3 {
+    animation-delay: 0.3s;
+  }
+
+  .stagger-4 {
+    animation-delay: 0.4s;
+  }
+
+  .stagger-5 {
+    animation-delay: 0.5s;
+  }
+
+  .stagger-6 {
+    animation-delay: 0.6s;
+  }
+
+  .font-futuristic {
+    font-family: 'Orbitron', 'Inter', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+}
+
+/* Keyframes */
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+
+  100% {
+    left: 100%;
+  }
+}
+
+@keyframes aurora-flow {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes gradient-shift {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes hologram-pulse {
+
+  0%,
+  100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes floating-cosmic {
+
+  0%,
+  100% {
+    transform: translateY(0px) translateX(0px) rotate(0deg);
+  }
+
+  25% {
+    transform: translateY(-20px) translateX(10px) rotate(1deg);
+  }
+
+  50% {
+    transform: translateY(-10px) translateX(-5px) rotate(-0.5deg);
+  }
+
+  75% {
+    transform: translateY(-15px) translateX(8px) rotate(0.8deg);
+  }
+}
+
+@keyframes pulse-neon {
+  0% {
+    box-shadow: var(--shadow-neon-md);
+    transform: scale(1);
+  }
+
+  100% {
+    box-shadow: var(--shadow-neon-xl);
+    transform: scale(1.02);
+  }
+}
+
+@keyframes rotate-hologram {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes slide-up-cosmic {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes scale-in-cosmic {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes particles-float {
+
+  0%,
+  100% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0;
+  }
+
+  10%,
+  90% {
+    opacity: 1;
+  }
+
+  50% {
+    transform: translateY(-100px) translateX(50px);
+    opacity: 0.8;
   }
 }
 
@@ -54,7 +369,7 @@ div[role="main"] {
 
 /* Ensure the lobby/configuration screen is also respecting theme or transparent */
 .ms-CallComposite-ConfigurationPage {
-    background-color: transparent !important;
+  background-color: transparent !important;
 }
 
 /* Hide potential scrollbars in full screen video */
@@ -62,10 +377,12 @@ div[role="main"] {
   width: 8px;
   height: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #4f46e5; /* Indigo-600 */
+  background: var(--gradient-cosmic);
   border-radius: 4px;
 }

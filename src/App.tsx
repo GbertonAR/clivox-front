@@ -10,6 +10,8 @@ import DashboardConfig from "./components/admin/DashboardConfig";
 import Examen from "./pages/Examen";
 import QRLogin from "./pages/QRLogin";
 import AIExamPlayer from "./pages/AIExamPlayer";
+import ValidarCodigo from "./pages/validacodigo";
+import Login from "./pages/login";
 // ⚠️ NO se importa el componente `VideoCall` aquí
 
 function App() {
@@ -17,6 +19,8 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/validacodigo" element={<ValidarCodigo />} />
         <Route path="/instructor" element={<Instructor />} />
         <Route path="/acs-instructor" element={<ACSInstructor />} />
         <Route path="/acs-cliente" element={<ACSCliente />} />

@@ -14,9 +14,13 @@ import { initializeIcons } from '@fluentui/react/lib/Icons'
 import { clivoxTheme } from '../clivoxTheme'
 
 // Initialize all Fluent UI icons once to suppress "icon not registered" warnings
-// The check prevents re-initialization on hot module reload
-initializeIcons(undefined, { disableWarnings: true })
-import { Users, Edit3, Monitor, Zap, Layout, X, Palette, Trash2, Video } from 'lucide-react'
+// We use a global flag to prevent re-initialization on hot module reload
+if (!(window as any).__clivox_icons_initialized) {
+  initializeIcons(undefined, { disableWarnings: true });
+  (window as any).__clivox_icons_initialized = true;
+}
+
+import { Users, Edit3, Monitor, Zap, Layout, X, Palette, Trash2, Video, User } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 
@@ -29,6 +33,7 @@ const ACSInstructor: React.FC = () => {
   const [showSidePanel, setShowSidePanel] = useState(true)
   const [activeTab, setActiveTab] = useState<'participants' | 'whiteboard'>('participants')
   const [participants, setParticipants] = useState<any[]>([])
+  const [profile, setProfile] = useState<{ nombre: string; rol: string } | null>(null)
 
   // Whiteboard state
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -69,11 +74,9 @@ const ACSInstructor: React.FC = () => {
 
         const newAdapter = await createAzureCommunicationCallAdapter({
           userId,
-          displayName: 'Instructor Principal',
+          displayName: profile?.nombre || 'Instructor Principal',
           credential,
-          locator: { groupId: GROUP_ID },
-          endpointUrl: ACS_ENDPOINT,
-          callCompositeOptions: { callControls: { callSurvey: false } }
+          locator: { groupId: GROUP_ID }
         });
 
         console.log("[ACS] Adapter created successfully!");
@@ -108,7 +111,18 @@ const ACSInstructor: React.FC = () => {
       }
     };
 
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/mi-perfil_acs`);
+        if (res.ok) {
+          const data = await res.json();
+          setProfile(data);
+        }
+      } catch (err) { console.error("Error fetching profile:", err); }
+    };
+
     initAdapter();
+    fetchProfile();
 
     return () => {
       console.log("[ACS] Cleanup function called (unmount).");
@@ -118,7 +132,20 @@ const ACSInstructor: React.FC = () => {
         adapter.dispose();
       }
     };
-  }, []); // Remove dependencies to run only once on mount
+  }, []); // Run only once on mount
+
+  useEffect(() => {
+    if (adapter) {
+      const onCallEnded = () => {
+        console.log("[ACS] Call ended event received. Redirecting...");
+        window.location.href = '/AdminDashboard';
+      };
+      adapter.on('callEnded', onCallEnded);
+      return () => {
+        adapter.off('callEnded', onCallEnded);
+      };
+    }
+  }, [adapter]);
 
   const registrarEvento = (userId: string, evento: string) => {
     fetch(`${import.meta.env.VITE_BACKEND_URL}/llamada/evento`, {
@@ -200,7 +227,7 @@ const ACSInstructor: React.FC = () => {
               <div className="absolute inset-0 bg-teal-400 blur-xl opacity-20 animate-pulse"></div>
               <img src="/img/logo.png" alt="Clivox" className="h-16 relative z-10" />
             </div>
-            <Spinner size="large" label="Estableciendo Enlace Seguro..." className="text-white" styles={{ label: { color: 'white', fontSize: '1.1em' } }} />
+            <Spinner size="large" label="Estableciendo Enlace Seguro..." className="text-white" labelPosition="below" />
           </div>
         </div>
       ) : (
@@ -213,7 +240,9 @@ const ACSInstructor: React.FC = () => {
           <div className="flex-1 relative z-10 flex flex-col">
             {/* ACS Composite - Maximized */}
             <div className="flex-1 w-full bg-black/20 backdrop-blur-sm relative rounded-2xl overflow-hidden m-2 border border-white/5 shadow-2xl">
-              <CallComposite adapter={adapter} />
+              <CallComposite
+                adapter={adapter}
+              />
             </div>
 
             {/* Custom Control Bar (Bottom Centered) */}
@@ -257,26 +286,45 @@ const ACSInstructor: React.FC = () => {
                 className="w-[400px] bg-indigo-950/80 backdrop-blur-3xl border-l border-white/10 flex flex-col z-20 shadow-[-10px_0_30px_rgba(0,0,0,0.5)]"
               >
                 {/* Panel Header */}
-                <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
-                  <div className="flex gap-6">
-                    <button
-                      onClick={() => setActiveTab('participants')}
-                      className={`relative pb-3 text-sm font-bold tracking-wide transition-colors ${activeTab === 'participants' ? 'text-indigo-300' : 'text-slate-400 hover:text-slate-200'}`}
-                    >
-                      ALUMNOS
-                      {activeTab === 'participants' && <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 w-full h-[3px] bg-indigo-400 rounded-t-full shadow-[0_-2px_8px_#818cf8]" />}
-                    </button>
-                    <button
-                      onClick={() => setActiveTab('whiteboard')}
-                      className={`relative pb-3 text-sm font-bold tracking-wide transition-colors ${activeTab === 'whiteboard' ? 'text-teal-300' : 'text-slate-400 hover:text-slate-200'}`}
-                    >
-                      PIZARRA
-                      {activeTab === 'whiteboard' && <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 w-full h-[3px] bg-teal-400 rounded-t-full shadow-[0_-2px_8px_#2dd4bf]" />}
-                    </button>
+                <div className="p-6 border-b border-white/10 flex flex-col gap-4 bg-white/5">
+                  <div className="flex justify-between items-center">
+                    <div className="flex gap-6">
+                      <button
+                        onClick={() => setActiveTab('participants')}
+                        className={`relative pb-3 text-sm font-bold tracking-wide transition-colors ${activeTab === 'participants' ? 'text-indigo-300' : 'text-slate-400 hover:text-slate-200'}`}
+                      >
+                        ALUMNOS
+                        {activeTab === 'participants' && <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 w-full h-[3px] bg-indigo-400 rounded-t-full shadow-[0_-2px_8px_#818cf8]" />}
+                      </button>
+                      <button
+                        onClick={() => setActiveTab('whiteboard')}
+                        className={`relative pb-3 text-sm font-bold tracking-wide transition-colors ${activeTab === 'whiteboard' ? 'text-teal-300' : 'text-slate-400 hover:text-slate-200'}`}
+                      >
+                        PIZARRA
+                        {activeTab === 'whiteboard' && <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 w-full h-[3px] bg-teal-400 rounded-t-full shadow-[0_-2px_8px_#2dd4bf]" />}
+                      </button>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => setShowSidePanel(false)} className="hover:bg-white/10 rounded-full">
+                      <X size={20} className="text-slate-400" />
+                    </Button>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={() => setShowSidePanel(false)} className="hover:bg-white/10 rounded-full">
-                    <X size={20} className="text-slate-400" />
-                  </Button>
+
+                  {/* Profile Info in Side Panel Header */}
+                  {profile && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex items-center gap-3 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl"
+                    >
+                      <div className="p-2 bg-indigo-500/20 rounded-lg">
+                        <User size={18} className="text-indigo-300" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-slate-100 truncate">{profile.nombre}</p>
+                        <p className="text-[10px] text-indigo-300 uppercase tracking-tighter font-mono">{profile.rol}</p>
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
 
                 {/* Panel Content */}
@@ -292,7 +340,7 @@ const ACSInstructor: React.FC = () => {
                         <motion.div
                           initial={{ opacity: 0, x: 20 }}
                           animate={{ opacity: 1, x: 0 }}
-                          delay={i * 0.05}
+                          transition={{ delay: i * 0.05 }}
                           key={i}
                           className="flex items-center gap-4 bg-white/5 p-4 rounded-xl border border-white/5 hover:bg-white/10 hover:border-indigo-500/30 transition-all group"
                         >
